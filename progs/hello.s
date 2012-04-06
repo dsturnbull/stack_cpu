@@ -1,0 +1,63 @@
+; h
+push	0x0
+push	0x68
+store
+
+; i
+push	0x1
+push	0x69
+store
+
+; i
+push	0x2
+push	0x69
+store
+
+; \n
+push	0x3
+push	0xa
+store
+
+; \0
+push	0x4
+push	0x0
+store
+
+; kick things off
+push	_main
+call
+hlt
+
+_main:
+	push	0x0
+	push	_print_str
+	call
+	ret
+
+; char * on stack
+_print_str:
+	; return unless the char * is not \0
+	dup
+	load
+	push	_print_str_ret
+	swap
+	jz
+
+	; print the char
+	dup
+	load
+	out
+
+	; inc char *
+	push	0x1
+	add
+
+	; print the next char
+	dup
+	push	_print_str
+	jmp
+
+_print_str_ret:
+	pop
+	ret
+

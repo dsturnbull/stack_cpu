@@ -1,0 +1,71 @@
+Stack machine simulation.
+
+Requires clang 3.1.
+
+* Usage:
+	** ./src/runner [-v] [-f asm_file]
+	*** -v: verbose, step through code
+	*** -f: asm file to assemble and run
+
+* Instructions:
+
+	** PUSH
+		Pushes the value in the next code instruction.
+
+	** POP
+		Discards the top stack value.
+
+	** NOP
+		Do nothing.
+
+	** HLT
+		Halt the machine.
+
+	** OUT
+		Pops a value and prints the value to stdout as a char.
+
+	** STORE
+		Pops a value, pops an address, then places the value in mem
+		at the addres.
+
+	** LOAD
+		Pops an address, loads that value from memory, then pushes
+		that value.
+
+	** ADD
+		Pops two values and pushes the sum.
+
+	** SUB
+		Pops two values and pushes the difference.
+
+	** MUL
+		Pops two values and pushes the product.
+
+	** DIV
+		Pops two values and pushes the quotient and remainder.
+
+	** JMP
+		Sets the CPU instruction pointer to the value popped.
+
+	** JZ
+		Pops an address and pops a value. If the value is zero,
+		moves cpu->ip to the address.
+
+	** JNZ
+		Pops an address and pops a value. If the value is not zero,
+		moves cpu->ip to the address.
+
+	** CALL
+		Pops an address and pushes to the return pointer stack.
+		Moves instruction pointer to that address.
+
+	** RET
+		Pops an address from the return pointer stack and moves
+		the instruct pointer there.
+
+	** DUP
+		Duplicates the value on the top of the stack.
+
+	** SWAP
+		Swaps the values of the top two values on the stack.
+
