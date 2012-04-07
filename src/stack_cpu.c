@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <termios.h>
 
 #include "src/asmr.h"
 #include "src/stack_cpu.h"
@@ -20,6 +21,8 @@ init_stack_cpu()
     cpu->sp = &cpu->stack[0];
     cpu->frames = &cpu->mem[STACK_CPU_FRAMES];
     cpu->rp = &cpu->frames[0];
+    cpu->io = &cpu->mem[STACK_CPU_IO];
+    cpu->kbd = &cpu->io[STACK_CPU_IO_KBD];
 
     return cpu;
 }
@@ -73,21 +76,21 @@ run_prog(stack_cpu_t *cpu)
 
             case OUT:
                 if (debug)
-                    printf("-> " MEM_FMT "x\n", *(cpu->sp--));
+                    printf("-> " MEM_FMT "\n", *(cpu->sp--));
                 else
                     printf("%c", *(cpu->sp--));
                 break;
 
             case LOAD:
                 if (debug)
-                    printf("loading " MEM_FMT "x from " MEM_FMT "x\n",
+                    printf("loading " MEM_FMT " from " MEM_FMT "\n",
                             cpu->data[*(cpu->sp)], *(cpu->sp));
                 *(cpu->sp) = cpu->data[*(cpu->sp)];
                 break;
 
             case STORE:
                 if (debug)
-                    printf("storing " MEM_FMT "x at " MEM_FMT "x\n",
+                    printf("storing " MEM_FMT " at " MEM_FMT "\n",
                             *(cpu->sp),
                             *(cpu->sp - 1));
                 cpu->data[*(cpu->sp--)] = *(cpu->sp--);
@@ -95,7 +98,7 @@ run_prog(stack_cpu_t *cpu)
 
             case ADD:
                 if (debug)
-                    printf(MEM_FMT "x + " MEM_FMT "x == " MEM_FMT "x\n",
+                    printf(MEM_FMT " + " MEM_FMT " == " MEM_FMT "\n",
                             *(cpu->sp - 1),
                             *(cpu->sp),
                             *(cpu->sp - 1) + *(cpu->sp));
@@ -105,7 +108,7 @@ run_prog(stack_cpu_t *cpu)
 
             case SUB:
                 if (debug)
-                    printf(MEM_FMT "x - " MEM_FMT "x == " MEM_FMT "x\n",
+                    printf(MEM_FMT " - " MEM_FMT " == " MEM_FMT "\n",
                             *(cpu->sp - 1),
                             *(cpu->sp),
                             *(cpu->sp - 1) - *(cpu->sp));
@@ -118,7 +121,7 @@ run_prog(stack_cpu_t *cpu)
 
             case DIV:
                 if (debug)
-                    printf(MEM_FMT "x / " MEM_FMT "x\n",
+                    printf(MEM_FMT " / " MEM_FMT "\n",
                         *(cpu->sp - 1), *(cpu->sp));
                 t = *(cpu->sp);
                 *(cpu->sp) = *(cpu->sp - 1) % *(cpu->sp);
@@ -127,13 +130,13 @@ run_prog(stack_cpu_t *cpu)
 
             case JMP:
                 if (debug)
-                    printf("jump " MEM_FMT "x\n", *(cpu->sp));
-                cpu->ip = &cpu->code[*(cpu->sp--)];
+                    printf("jump " MEM_FMT "\n", *(cpu->sp));
+                cpu->ip = &cpu->code[*(cpu->sp--)] - 1;
                 break;
 
             case JZ:
                 if (debug)
-                    printf(MEM_FMT "x == 0 ", *(cpu->sp));
+                    printf(MEM_FMT " == 0 ", *(cpu->sp));
                 if (*(cpu->sp--) == 0) {
                     if (debug)
                         printf("jumping to " MEM_FMT "\n", *(cpu->sp));
@@ -147,7 +150,7 @@ run_prog(stack_cpu_t *cpu)
 
             case JNZ:
                 if (debug)
-                    printf(MEM_FMT "x != 0 ", *(cpu->sp));
+                    printf(MEM_FMT " != 0 ", *(cpu->sp));
                 if (*(cpu->sp--) != 0) {
                     if (debug)
                         printf("jumping to " MEM_FMT "\n", *(cpu->sp));
@@ -161,7 +164,7 @@ run_prog(stack_cpu_t *cpu)
 
             case CALL:
                 if (debug)
-                    printf("calling " MEM_FMT " from " MEM_FMT "lx\n",
+                    printf("calling " MEM_FMT " from " MEM_FMT "\n",
                             *(cpu->sp),
                             (uint32_t)(cpu->ip - cpu->code));
                 *(cpu->rp++) = cpu->ip - cpu->code;
@@ -170,7 +173,7 @@ run_prog(stack_cpu_t *cpu)
 
             case RET:
                 if (debug)
-                    printf("returning from " MEM_FMT "lx to " MEM_FMT "\n",
+                    printf("returning from " MEM_FMT " to " MEM_FMT "\n",
                             (uint32_t)(cpu->ip - cpu->code),
                             *(cpu->rp - 1));
                 cpu->ip = cpu->code + *(--cpu->rp);
@@ -194,6 +197,16 @@ run_prog(stack_cpu_t *cpu)
                 t = *(cpu->sp);
                 *(cpu->sp) = *(cpu->sp - 1);
                 *(cpu->sp - 1) = t;
+                break;
+
+            case INT:
+                if (debug)
+                    printf("int\n");
+                t = *(cpu->sp--);
+                if (*(cpu->sp--) == STACK_CPU_IO_KBD) {
+                    *(++cpu->sp) = readchar();
+                    cpu->ip = &cpu->code[t] - 1;
+                }
                 break;
 
             case PUSH:
@@ -253,9 +266,24 @@ print_state(stack_cpu_t *cpu)
     }
 
     printf("\n");
-    /* printf("ip: " MEM_FMT "lx\n", cpu->ip - cpu->code); */
-    /* printf("sp: " MEM_FMT "lx\n", cpu->sp - cpu->stack); */
-    /* printf("rp: " MEM_FMT "lx\n", cpu->rp - cpu->frames); */
+    /* printf("ip: " MEM_FMT "\n", cpu->ip - cpu->code); */
+    /* printf("sp: " MEM_FMT "\n", cpu->sp - cpu->stack); */
+    /* printf("rp: " MEM_FMT "\n", cpu->rp - cpu->frames); */
     /* printf("cy: %lu\n", cpu->cycles); */
+}
+
+uint8_t
+readchar()
+{
+    struct termios old_tio, new_tio;
+	tcgetattr(1, &old_tio);
+    new_tio = old_tio;
+    new_tio.c_lflag &= (~ICANON & ~ECHO);
+
+    tcsetattr(1, TCSANOW, &new_tio);
+    uint8_t c = getchar();
+    tcsetattr(1, TCSANOW, &old_tio);
+
+    return c;
 }
 

@@ -60,28 +60,12 @@ stack_cpu_asm(asmr_t *asmr, const char *code)
         uint32_t addr;
 
         switch (op) {
-            case NOP:
-            case HLT:
-            case OUT:
-            case LOAD:
-            case STORE:
-            case ADD:
-            case SUB:
-            case MUL:
-            case DIV:
-            case JMP:
-            case JZ:
-            case JNZ:
-            case CALL:
-            case RET:
-            case DUP:
-            case POP:
-            case SWAP:
-                push(asmr, NULL, op, 0);
-                break;
-
             case PUSH:
                 push(asmr, &line, op, 1);
+                break;
+
+            default:
+                push(asmr, NULL, op, 0);
                 break;
             }
     }
@@ -199,6 +183,7 @@ parse_op(char *op)
     GET_CONST(DUP);
     GET_CONST(POP);
     GET_CONST(SWAP);
+    GET_CONST(INT);
 
     GET_CONST(PUSH);
 

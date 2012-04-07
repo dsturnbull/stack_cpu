@@ -6,10 +6,13 @@
 #include <sys/types.h>
 
 #define STACK_CPU_MEMORY_SZ 0x10000
-#define STACK_CPU_CODE      0x0000
-#define STACK_CPU_DATA      0x4000
-#define STACK_CPU_STACK     0x6000
-#define STACK_CPU_FRAMES    0x8000
+#define STACK_CPU_CODE      0x00000
+#define STACK_CPU_DATA      0x04000
+#define STACK_CPU_STACK     0x06000
+#define STACK_CPU_FRAMES    0x08000
+#define STACK_CPU_IO        0x09000
+
+#define STACK_CPU_IO_KBD    0x0
 
 #define GET_CONST(c) {                                                      \
     if (strcasecmp(op, #c) == 0) {                                          \
@@ -23,8 +26,9 @@ bool debug;
 
 typedef struct stack_cpu_st {
     uint32_t mem[STACK_CPU_MEMORY_SZ];
-    uint32_t *code, *data,  *stack, *frames;
+    uint32_t *code, *data,  *stack, *frames,    *io;
     uint32_t *ip,           *sp,    *rp;
+    uint32_t *kbd;
     size_t cycles;
 } stack_cpu_t;
 
@@ -47,9 +51,10 @@ typedef enum op_e {
     DUP,    // 0x000e
     POP,    // 0x000f
     SWAP,   // 0x0010
+    INT,    // 0x0011
 
     // 1 arg
-    PUSH,   // 0x0011
+    PUSH,   // 0x0012
 } op_t;
 
 stack_cpu_t * init_stack_cpu();
@@ -57,6 +62,7 @@ stack_cpu_t * init_stack_cpu();
 void load_prog(stack_cpu_t *, uint32_t *, size_t);
 void run_prog(stack_cpu_t *);
 void print_state(stack_cpu_t *);
+uint8_t readchar();
 
 #endif
 

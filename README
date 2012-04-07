@@ -69,3 +69,7 @@ Requires clang 3.1.
 	** SWAP
 		Swaps the values of the top two values on the stack.
 
+	** INT
+		Registers an interrupt handler. The handler address and the
+		resource address are popped from the stack.
+
