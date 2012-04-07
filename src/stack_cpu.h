@@ -17,7 +17,7 @@
     }                                                                       \
 } while (0)
 
-#define MEM_FMT "%02"
+#define MEM_FMT "%02x"
 
 bool debug;
 
@@ -51,16 +51,6 @@ typedef enum op_e {
     // 1 arg
     PUSH,   // 0x0011
 } op_t;
-
-struct label {
-    char *name;
-    uint32_t addr;
-};
-
-struct data {
-    char *name;
-    uint32_t addr;
-};
 
 stack_cpu_t * init_stack_cpu();
 

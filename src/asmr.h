@@ -24,6 +24,16 @@ typedef struct asmr_st {
     struct data **data;
 } asmr_t;
 
+struct label {
+    char *name;
+    uint32_t addr;
+};
+
+struct data {
+    char *name;
+    uint32_t addr;
+};
+
 asmr_t * init_asmr();
 size_t stack_cpu_asm(asmr_t *, const char *);
 uint32_t read_value(asmr_t *, char *, uint32_t *);

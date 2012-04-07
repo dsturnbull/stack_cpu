@@ -174,7 +174,7 @@ make_label(asmr_t *asmr, char *s)
     asmr->labels[asmr->label_count] = malloc(sizeof(struct label));
     asmr->labels[asmr->label_count]->name = strdup(s);
     asmr->labels[asmr->label_count]->addr = asmr->ip - asmr->prog;
-    /* printf("%s == " MEM_FMT "x\n", s, */
+    /* printf("%s == " MEM_FMT "\n", s, */
     /*         asmr->labels[asmr->label_count]->addr); */
     asmr->label_count++;
 }
@@ -228,10 +228,10 @@ replace_sentinels(asmr_t *asmr)
 {
     for (int i = 0; i < STACK_CPU_MEMORY_SZ; i++)
         if (asmr->prog[i] == 0xdeadbeef) {
-            /* printf(MEM_FMT "x is deadbeef\n", i); */
+            /* printf(MEM_FMT " is deadbeef\n", i); */
             for (size_t j = 0; j < asmr->missing_count; j++)
                 if (asmr->missing[j]->addr == (uint32_t)i) {
-                    /* printf(MEM_FMT "x found\n", asmr->missing[j]->addr); */
+                    /* printf(MEM_FMT " found\n", asmr->missing[j]->addr); */
                     for (size_t n = 0; n < asmr->label_count; n++) {
                         /* printf("%s == %s\n", */
                         /*         asmr->labels[n]->name, */
@@ -249,11 +249,11 @@ print_prog(asmr_t *asmr)
 {
     uint32_t *p = asmr->prog;
     for (size_t i = 0; i < asmr->prog_len; i += 16) {
-        printf(MEM_FMT "lx: ", i);
+        printf(MEM_FMT "lx: ", (uint32_t)i);
         for (int j = 0; j < 16; j++) {
             if (j % 4 == 0)
                 printf(" ");
-            printf(MEM_FMT "x ", *(p++));
+            printf(MEM_FMT, *(p++));
         }
         printf("\n");
     }

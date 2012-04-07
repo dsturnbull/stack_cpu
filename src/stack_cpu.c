@@ -43,14 +43,14 @@ run_prog(stack_cpu_t *cpu)
         if (debug) {
             getchar();
 
-            printf("ip: " MEM_FMT "lx "
-                   "sp: " MEM_FMT "lx "
-                   "rp: " MEM_FMT "lx "
-                   "op: " MEM_FMT "x: "
+            printf("ip: " MEM_FMT " "
+                   "sp: " MEM_FMT " "
+                   "rp: " MEM_FMT " "
+                   "op: " MEM_FMT ": "
                    "cy: %lu ",
-                    cpu->ip - cpu->code,
-                    cpu->sp - cpu->stack,
-                    cpu->rp - cpu->frames,
+                    (uint32_t)(cpu->ip - cpu->code),
+                    (uint32_t)(cpu->sp - cpu->stack),
+                    (uint32_t)(cpu->rp - cpu->frames),
                     op,
                     cpu->cycles);
 
@@ -136,7 +136,7 @@ run_prog(stack_cpu_t *cpu)
                     printf(MEM_FMT "x == 0 ", *(cpu->sp));
                 if (*(cpu->sp--) == 0) {
                     if (debug)
-                        printf("jumping to " MEM_FMT "x\n", *(cpu->sp));
+                        printf("jumping to " MEM_FMT "\n", *(cpu->sp));
                     cpu->ip = &cpu->code[*(cpu->sp--)] - 1;
                 } else {
                     if (debug)
@@ -150,7 +150,7 @@ run_prog(stack_cpu_t *cpu)
                     printf(MEM_FMT "x != 0 ", *(cpu->sp));
                 if (*(cpu->sp--) != 0) {
                     if (debug)
-                        printf("jumping to " MEM_FMT "x\n", *(cpu->sp));
+                        printf("jumping to " MEM_FMT "\n", *(cpu->sp));
                     cpu->ip = &cpu->code[*(cpu->sp--)] - 1;
                 } else {
                     if (debug)
@@ -161,24 +161,24 @@ run_prog(stack_cpu_t *cpu)
 
             case CALL:
                 if (debug)
-                    printf("calling " MEM_FMT "x from " MEM_FMT "lx\n",
+                    printf("calling " MEM_FMT " from " MEM_FMT "lx\n",
                             *(cpu->sp),
-                            cpu->ip - cpu->code);
+                            (uint32_t)(cpu->ip - cpu->code));
                 *(cpu->rp++) = cpu->ip - cpu->code;
                 cpu->ip = &cpu->code[*(cpu->sp--)] - 1;
                 break;
 
             case RET:
                 if (debug)
-                    printf("returning from " MEM_FMT "lx to " MEM_FMT "x\n",
-                            cpu->ip - cpu->code,
+                    printf("returning from " MEM_FMT "lx to " MEM_FMT "\n",
+                            (uint32_t)(cpu->ip - cpu->code),
                             *(cpu->rp - 1));
                 cpu->ip = cpu->code + *(--cpu->rp);
                 break;
 
             case DUP:
                 if (debug)
-                    printf("dup of " MEM_FMT "x\n", *(cpu->sp));
+                    printf("dup of " MEM_FMT "\n", *(cpu->sp));
                 *(++cpu->sp) = *(cpu->sp);
                 break;
 
@@ -198,7 +198,7 @@ run_prog(stack_cpu_t *cpu)
 
             case PUSH:
                 if (debug)
-                    printf("pushing " MEM_FMT "x\n", *(cpu->ip + 1));
+                    printf("pushing " MEM_FMT "\n", *(cpu->ip + 1));
                 *(++cpu->sp) = *(++cpu->ip);
                 break;
 
@@ -219,7 +219,7 @@ print_state(stack_cpu_t *cpu)
     for (uint32_t i = 0; i < 64; i++) {
         if (i % 16 == 0)
             printf("\ncode   %06x: ", i);
-        printf(MEM_FMT "x", cpu->code[i]);
+        printf(MEM_FMT "", cpu->code[i]);
         if (i == cpu->ip - cpu->code)
             printf("* ");
         else
@@ -229,13 +229,13 @@ print_state(stack_cpu_t *cpu)
     for (int i = 0; i < 64; i++) {
         if (i % 16 == 0)
             printf("\ndata   %06x: ", i);
-        printf(MEM_FMT "x  ", cpu->data[i]);
+        printf(MEM_FMT "  ", cpu->data[i]);
     }
 
     for (uint32_t i = 0; i < 64; i++) {
         if (i % 16 == 0)
             printf("\nstack  %06x: ", i);
-        printf(MEM_FMT "x", cpu->stack[i]);
+        printf(MEM_FMT, cpu->stack[i]);
         if (i == cpu->sp - cpu->stack)
             printf("* ");
         else
@@ -245,7 +245,7 @@ print_state(stack_cpu_t *cpu)
     for (uint32_t i = 0; i < 64; i++) {
         if (i % 16 == 0)
             printf("\nframes %06x: ", i);
-        printf(MEM_FMT "x", cpu->frames[i]);
+        printf(MEM_FMT, cpu->frames[i]);
         if (i == cpu->rp - cpu->frames)
             printf("* ");
         else
