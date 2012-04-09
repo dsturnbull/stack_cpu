@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <getopt.h>
 
 #include "src/stack_cpu.h"
@@ -12,7 +11,7 @@ int
 main(int argc, char *argv[])
 {
     int ch;
-    char *fn = "progs/hello.s";
+    char *fn = "progs/forth.asmr";
 
     while ((ch = getopt(argc, argv, "vf:")) != -1) {
         switch (ch) {
@@ -29,26 +28,9 @@ main(int argc, char *argv[])
     // init cpu
     stack_cpu_t *cpu = init_stack_cpu();
 
-    // load asm file
-    struct stat st;
-    if (stat(fn, &st) < 0) {
-        perror(fn);
-        return 1;
-    }
-
-    FILE *fp;
-    if ((fp = fopen(fn, "r")) == NULL) {
-        perror(fn);
-        return 1;
-    }
-
-    char *code = malloc(st.st_size);
-    fread(code, st.st_size, 1, fp);
-    fclose(fp);
-
     // assemble it
     asmr_t *asmr = init_asmr();
-    stack_cpu_asm(asmr, code);
+    stack_cpu_asm(asmr, fn);
     load_prog(cpu, asmr->prog, asmr->prog_len);
     free(asmr);
 
@@ -60,8 +42,7 @@ main(int argc, char *argv[])
     // run program
     run_prog(cpu);
 
-    if (debug)
-        print_state(cpu);
+    print_state(cpu);
 
     return 0;
 }

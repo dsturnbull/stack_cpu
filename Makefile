@@ -12,17 +12,18 @@ SRCS=$(wildcard src/*.c)
 OBJS=$(SRCS:%.c=%.o)
 DEPS=$(SRCS:%.c=%.d)
 
-RUNNER=src/runner
+all: runner as
 
-all: $(RUNNER)
+runner: $(OBJS) runner.o
+	$(CC) $(CFLAGS) $^ -o $@
 
-$(RUNNER): $(OBJS)
+as: $(OBJS) as.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean:
 	rm -f $(OBJS)
 	rm -f $(DEPS)
-	rm -f $(RUNNER)
+	rm -f runner as
 
 analyze:
 	$(CC) $(CFLAGS) --analyze $(SRCS)

@@ -30,9 +30,8 @@ init_stack_cpu()
 void
 load_prog(stack_cpu_t *stack_cpu, uint32_t *prog, size_t len)
 {
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++)
         stack_cpu->mem[i] = prog[i];
-    }
 }
 
 void
@@ -215,6 +214,9 @@ run_prog(stack_cpu_t *cpu)
                 *(++cpu->sp) = *(++cpu->ip);
                 break;
 
+            case DEBUG:
+                debug = true;
+                break;
         }
 
         if (debug)
@@ -229,7 +231,10 @@ print_state(stack_cpu_t *cpu)
 {
     // print final interesting things
 
-    for (uint32_t i = 0; i < 64; i++) {
+    //printf("\033[2J");
+
+    /*
+    for (uint32_t i = 0; i < 128; i++) {
         if (i % 16 == 0)
             printf("\ncode   %06x: ", i);
         printf(MEM_FMT "", cpu->code[i]);
@@ -238,14 +243,15 @@ print_state(stack_cpu_t *cpu)
         else
             printf("  ");
     }
+    */
 
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 128; i++) {
         if (i % 16 == 0)
             printf("\ndata   %06x: ", i);
         printf(MEM_FMT "  ", cpu->data[i]);
     }
 
-    for (uint32_t i = 0; i < 64; i++) {
+    for (uint32_t i = 0; i < 128; i++) {
         if (i % 16 == 0)
             printf("\nstack  %06x: ", i);
         printf(MEM_FMT, cpu->stack[i]);
@@ -255,7 +261,8 @@ print_state(stack_cpu_t *cpu)
             printf("  ");
     }
 
-    for (uint32_t i = 0; i < 64; i++) {
+    /*
+    for (uint32_t i = 0; i < 128; i++) {
         if (i % 16 == 0)
             printf("\nframes %06x: ", i);
         printf(MEM_FMT, cpu->frames[i]);
@@ -264,6 +271,7 @@ print_state(stack_cpu_t *cpu)
         else
             printf("  ");
     }
+    */
 
     printf("\n");
     /* printf("ip: " MEM_FMT "\n", cpu->ip - cpu->code); */
@@ -276,7 +284,7 @@ uint8_t
 readchar()
 {
     struct termios old_tio, new_tio;
-	tcgetattr(1, &old_tio);
+    tcgetattr(1, &old_tio);
     new_tio = old_tio;
     new_tio.c_lflag &= (~ICANON & ~ECHO);
 

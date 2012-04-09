@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <sys/stat.h>
 
 #include "src/asmr.h"
 
@@ -24,20 +25,73 @@ init_asmr()
     asmr->data_count = 0;
     asmr->data = malloc(asmr->data_size * sizeof(struct data *));
 
-    asmr->prog = calloc(1024, sizeof(uint32_t));
+    asmr->prog = calloc(STACK_CPU_DATA - 1, sizeof(uint32_t));
     asmr->ip = asmr->prog;
 
     return asmr;
 }
 
 size_t
-stack_cpu_asm(asmr_t *asmr, const char *code)
+stack_cpu_asm(asmr_t *asmr, char *fn)
 {
-    char *inp = strdup(code);
+    // make room for jumping to _main
+    asmr->ip += 4;
+
+    parse_file(asmr, fn);
+
+    asmr->prog_len = asmr->ip - asmr->prog;
+
+    replace_sentinels(asmr);
+
+    // jump to main
+    uint32_t main_loc;
+
+    size_t i;
+    for (i = 0; i < asmr->label_count; i++) {
+        if (strcmp(asmr->labels[i]->name, "main") == 0) {
+            main_loc = asmr->labels[i]->addr;
+            break;
+        }
+    }
+
+    asmr->ip = asmr->prog;
+    push(asmr, NULL, PUSH, 0);
+    push(asmr, NULL, main_loc, 0);
+    push(asmr, NULL, CALL, 0);
+    push(asmr, NULL, HLT, 0);
+
+    free(asmr->labels);
+    free(asmr->missing);
+
+    return asmr->prog_len;
+}
+
+void
+parse_file(asmr_t *asmr, char *fn)
+{
+    // load asm file
+    struct stat st;
+    if (stat(fn, &st) < 0) {
+        perror(fn);
+        return;
+    }
+
+    FILE *fp;
+    if ((fp = fopen(fn, "r")) == NULL) {
+        perror(fn);
+        return;
+    }
+
+    char *inp = malloc(st.st_size);
+    fread(inp, st.st_size, 1, fp);
+    fclose(fp);
+
     char *line;
     size_t lineno = 0;
 
-    while ((line = strsep(&inp, "\n")) != NULL) {
+    define_constant(asmr, "KBD", STACK_CPU_IO_KBD);
+
+    while ((line = strsep(&inp, "\n")) != NULL && inp != NULL) {
         lineno++;
         normalise_line(&line);
 
@@ -50,6 +104,21 @@ stack_cpu_asm(asmr_t *asmr, const char *code)
 
         if (ops[0] == ';')
             continue;
+
+        if (strcmp(ops, "%define") == 0) {
+            char *name = strsep(&line, "\t");;
+            uint32_t value;
+            sscanf(strsep(&line, "\t"), "%x", &value);
+            define_constant(asmr, name, value);
+            continue;
+        }
+
+        if (strcmp(ops, "%import") == 0) {
+            char *fn = strsep(&line, "\t");
+            fn++; fn[strlen(fn) - 1] = '\0';
+            parse_file(asmr, fn);
+            continue;
+        }
 
         if (strlen(ops) == 0)
             continue;
@@ -70,15 +139,7 @@ stack_cpu_asm(asmr_t *asmr, const char *code)
             }
     }
 
-    asmr->prog_len = asmr->ip - asmr->prog;
-
-    replace_sentinels(asmr);
-    
-    free(asmr->labels);
-    free(asmr->missing);
     free(inp);
-
-    return asmr->prog_len;
 }
 
 uint32_t
@@ -101,9 +162,15 @@ read_value(asmr_t *asmr, char *s, uint32_t *ip)
         s[strlen(s)] = '\0';
         sscanf(s, "%x", &arg);
 
-    } else if (s[0] == 'r' && s[1] >= 0x30 && s[1] <= 0x37) {
-        // register
-        //arg = R0 + (s[1] - 0x30) * R0;
+    } else if (s[0] >= 'A' && s[0] <= 'Z') {
+        // constant
+        size_t i;
+        for (i = 0; i < asmr->label_count; i++) {
+            if (strcmp(asmr->labels[i]->name, s) == 0) {
+                arg = asmr->labels[i]->addr;
+                break;
+            }
+        }
 
     } else {
         // label
@@ -150,6 +217,15 @@ push(asmr_t *asmr, char **line, uint32_t op, size_t n)
 }
 
 void
+define_constant(asmr_t *asmr, char *name, uint32_t value)
+{
+    asmr->labels[asmr->label_count] = malloc(sizeof(struct label));
+    asmr->labels[asmr->label_count]->name = strdup(name);
+    asmr->labels[asmr->label_count]->addr = value;
+    asmr->label_count++;
+}
+
+void
 make_label(asmr_t *asmr, char *s)
 {
     // chomp
@@ -184,7 +260,7 @@ parse_op(char *op)
     GET_CONST(POP);
     GET_CONST(SWAP);
     GET_CONST(INT);
-
+    GET_CONST(DEBUG);
     GET_CONST(PUSH);
 
     printf("%s\n", op);
@@ -211,22 +287,30 @@ normalise_line(char **line)
 void
 replace_sentinels(asmr_t *asmr)
 {
-    for (int i = 0; i < STACK_CPU_MEMORY_SZ; i++)
+    for (size_t i = 0; i < asmr->prog_len; i++) {
         if (asmr->prog[i] == 0xdeadbeef) {
+            bool found = false;
             /* printf(MEM_FMT " is deadbeef\n", i); */
-            for (size_t j = 0; j < asmr->missing_count; j++)
+            for (size_t j = 0; j < asmr->missing_count; j++) {
                 if (asmr->missing[j]->addr == (uint32_t)i) {
                     /* printf(MEM_FMT " found\n", asmr->missing[j]->addr); */
                     for (size_t n = 0; n < asmr->label_count; n++) {
-                        /* printf("%s == %s\n", */
-                        /*         asmr->labels[n]->name, */
-                        /*         asmr->missing[j]->name); */
                         if (strcmp(asmr->labels[n]->name,
-                                    asmr->missing[j]->name) == 0)
+                                    asmr->missing[j]->name) == 0) {
+                            /* printf("%s == %s\n", */
+                            /*         asmr->labels[n]->name, */
+                            /*         asmr->missing[j]->name); */
+                            found = true;
                             asmr->prog[i] = asmr->labels[n]->addr;
+                        }
                     }
                 }
+
+            }
+
+            assert(found);
         }
+    }
 }
 
 void
@@ -234,11 +318,9 @@ print_prog(asmr_t *asmr)
 {
     uint32_t *p = asmr->prog;
     for (size_t i = 0; i < asmr->prog_len; i += 16) {
-        printf(MEM_FMT "lx: ", (uint32_t)i);
+        printf(MEM_FMT ": ", (uint32_t)i);
         for (int j = 0; j < 16; j++) {
-            if (j % 4 == 0)
-                printf(" ");
-            printf(MEM_FMT, *(p++));
+            printf(MEM_FMT " ", *(p++));
         }
         printf("\n");
     }

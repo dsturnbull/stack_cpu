@@ -1,0 +1,41 @@
+; read line to pointer
+; char *
+_read_line:
+	dup			; keep the pointer
+	push	KBD		; register int resource
+	push	_read_key	; register int callback
+	int			; interrupt
+
+; char
+_read_key:
+	; echo char
+	dup
+	out
+
+	; check if 0xa
+	dup
+	push	0xa
+	sub
+
+	; finish
+	push	_read_line_ret
+	swap
+	jz
+
+	; store to mem
+	store
+
+	; increment stack len
+	push	0x1
+	add
+
+	; keep going!
+	push	_read_line
+	jmp
+
+_read_line_ret:
+	pop
+	pop
+	pop
+	ret
+

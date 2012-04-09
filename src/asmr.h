@@ -35,9 +35,11 @@ struct data {
 };
 
 asmr_t * init_asmr();
-size_t stack_cpu_asm(asmr_t *, const char *);
+size_t stack_cpu_asm(asmr_t *, char *);
+void parse_file(asmr_t *, char *);
 uint32_t read_value(asmr_t *, char *, uint32_t *);
 void push(asmr_t *, char **, uint32_t, size_t);
+void define_constant(asmr_t *, char *, uint32_t);
 void make_label(asmr_t *, char *);
 op_t parse_op(char *);
 void normalise_line(char **);

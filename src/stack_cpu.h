@@ -5,12 +5,12 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#define STACK_CPU_MEMORY_SZ 0x10000
-#define STACK_CPU_CODE      0x00000
-#define STACK_CPU_DATA      0x04000
-#define STACK_CPU_STACK     0x06000
-#define STACK_CPU_FRAMES    0x08000
-#define STACK_CPU_IO        0x09000
+#define STACK_CPU_MEMORY_SZ 0x100000
+#define STACK_CPU_CODE      0x000000
+#define STACK_CPU_DATA      0x040000
+#define STACK_CPU_STACK     0x060000
+#define STACK_CPU_FRAMES    0x080000
+#define STACK_CPU_IO        0x090000
 
 #define STACK_CPU_IO_KBD    0x0
 
@@ -20,7 +20,7 @@
     }                                                                       \
 } while (0)
 
-#define MEM_FMT "%02x"
+#define MEM_FMT "%08x"
 
 bool debug;
 
@@ -52,9 +52,10 @@ typedef enum op_e {
     POP,    // 0x000f
     SWAP,   // 0x0010
     INT,    // 0x0011
+    DEBUG,  // 0x0012
 
     // 1 arg
-    PUSH,   // 0x0012
+    PUSH,   // 0x0013
 } op_t;
 
 stack_cpu_t * init_stack_cpu();
