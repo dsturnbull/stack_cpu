@@ -12,7 +12,6 @@ _read_key_print:
 	push	0x71
 	sub
 	push	_read_key_ret
-	swap
 	jz
 
 	out

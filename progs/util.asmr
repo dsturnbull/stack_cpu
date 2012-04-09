@@ -19,7 +19,6 @@ _read_key:
 
 	; finish
 	push	_read_line_ret
-	swap
 	jz
 
 	; store to mem

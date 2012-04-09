@@ -27,7 +27,6 @@ _parse_str:
 	push	0x3a
 	sub
 	push	_add_word
-	swap
 	jz
 
 	; exec word

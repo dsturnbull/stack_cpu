@@ -135,30 +135,30 @@ run_prog(stack_cpu_t *cpu)
 
             case JZ:
                 if (debug)
-                    printf(MEM_FMT " == 0 ", *(cpu->sp));
-                if (*(cpu->sp--) == 0) {
+                    printf(MEM_FMT " == 0 ", *(cpu->sp - 1));
+                if (*(cpu->sp - 1) == 0) {
                     if (debug)
                         printf("jumping to " MEM_FMT "\n", *(cpu->sp));
-                    cpu->ip = &cpu->code[*(cpu->sp--)] - 1;
+                    cpu->ip = &cpu->code[*(cpu->sp)] - 1;
                 } else {
                     if (debug)
                         printf("not jumping\n");
-                    cpu->sp--;
                 }
+                cpu->sp -= 2;
                 break;
 
             case JNZ:
                 if (debug)
-                    printf(MEM_FMT " != 0 ", *(cpu->sp));
-                if (*(cpu->sp--) != 0) {
+                    printf(MEM_FMT " != 0 ", *(cpu->sp - 1));
+                if (*(cpu->sp - 1) != 0) {
                     if (debug)
                         printf("jumping to " MEM_FMT "\n", *(cpu->sp));
-                    cpu->ip = &cpu->code[*(cpu->sp--)] - 1;
+                    cpu->ip = &cpu->code[*(cpu->sp)] - 1;
                 } else {
                     if (debug)
                         printf("not jumping\n");
-                    cpu->sp--;
                 }
+                cpu->sp -= 2;
                 break;
 
             case CALL:

@@ -37,7 +37,6 @@ _add_word_finding_name:
 
 	; repeat
 	push	_add_word_finding_name
-	swap
 	jnz
 
 _add_word_name_found:
