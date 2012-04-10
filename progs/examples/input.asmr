@@ -1,6 +1,8 @@
+; press q (0x71) to exit
 _main:
 	push	_read_key
 	call
+	ret
 
 _read_key:
 	push	KBD

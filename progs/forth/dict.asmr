@@ -1,0 +1,196 @@
+; struct words {
+;	int tail
+;	struct word words[]
+; }
+;
+; struct word {
+;	int name_len
+;	char *name
+;	int code_len
+;	char *code
+; }
+
+; <- len, char *
+_add_word:
+	; store name length
+	; store name
+	; store code length
+	; store code
+
+	; skip past ': '
+	push	0x2
+	add
+
+_add_word_char:
+	dup
+
+	; check if char is ' '
+	dup
+	load
+	push	0x20
+	sub
+	push	_add_word_ret
+	jz
+
+	; store char
+	load
+	push	TAIL
+	load
+	swap
+	store
+
+	; next char
+	push	0x1
+	add
+
+	; inc tail
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	_add_word_char
+	jmp
+
+_add_word_ret:
+	pop
+	pop
+
+	push	_ok
+	call
+
+	ret
+
+; <- len, char *
+_exec_word:
+	; ignore \0
+	swap
+	push	0x1
+	sub
+
+	; reset dict iter
+	push	ITER
+	push	WORDS
+	store
+
+	push	_iterate_words
+	call
+
+	pop
+	ret
+
+; iterate through dict
+_iterate_words:
+	push	ITER
+	load
+	load
+	push	_iterate_words_ret
+	jz
+
+	dup
+	push	ITER
+	load	; read word *
+	load	; read name len
+
+	sub
+	push	_iterate_word_match
+	jz
+
+	; move to code section
+	push	ITER
+	load
+	load
+
+	push	ITER
+	load
+	add
+
+	push	0x1
+	add
+
+	push	ITER
+	swap
+	store
+
+	push	ITER
+	load
+	load	; read the code len
+
+	; skip the code
+	push	ITER
+	load
+	add
+	push	0x1
+	add
+	push	ITER
+	swap
+	store
+
+	push	_iterate_words
+	jmp
+
+_iterate_word_match:
+	pop
+
+_iterate_word_next_match:
+	; try matching words
+	; get the next char from input
+	dup
+	load
+
+	; success - went through the string until \0 with all matching
+	dup
+	push	_iterate_word_match_ret
+	jz
+
+	; move input char * along
+	swap
+	push	0x1
+	add
+	swap
+
+	; move iter along
+	push	ITER
+	load
+	push	0x1
+	add
+
+	push	ITER
+	swap
+	store
+
+	; get the next char from the dict word name
+	push	ITER
+	load
+	load
+	sub
+
+	push	_iterate_word_next_match
+	jz
+
+	; failure
+	ret
+
+_iterate_word_match_ret:
+	; one more to the code size
+	pop
+	push	ITER
+	load
+	push	0x2	; and another, we don't actually care about the size.
+	add
+
+	; jump to code
+	push	DATA_PAGE
+	add
+	call
+
+	push	_ok
+	call
+
+	ret
+
+_iterate_words_ret:
+	ret

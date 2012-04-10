@@ -1,0 +1,68 @@
+%define	LOOP	0x70
+%define	CNT	0x10
+
+_main:
+	; loop counter
+	push	LOOP
+	push	CNT
+	store
+
+	push	_loop
+	call
+	ret
+
+_loop:
+	push	LOOP		; load loop counter
+	load
+	dup
+	push	_exit
+	jz
+
+	;pop
+	push	_print_num	; print the counter
+	call
+
+	push	0xa		; newline
+	out
+
+	; decrement loop counter
+	push	LOOP
+	load
+	push	0x1		; by 1
+	sub
+	push	LOOP
+	swap
+	store
+
+	push	_loop
+	jmp
+
+_exit:
+	ret
+
+; number on stack
+_print_num:
+	dup
+	; divide num by 10
+	push	0xa
+	div
+
+	; push remainder
+	push	0x30
+	add
+
+	swap
+
+	; loop until quo == 0
+	dup
+	push	_print_num_ret
+	jz
+
+	push	_print_num
+	call
+
+_print_num_ret:
+	pop
+	out
+	ret
+

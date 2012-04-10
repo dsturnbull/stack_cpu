@@ -1,0 +1,107 @@
+_load_cr_word:
+	push	TAIL
+	load
+	push	0x2	; length of word name
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x43	; C
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x52	; R
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x4	; length of code
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x13	; PUSH
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x0a	; CR
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x2	; JMP
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0xd	; RET
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	ret
+

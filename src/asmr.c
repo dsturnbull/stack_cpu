@@ -90,6 +90,10 @@ parse_file(asmr_t *asmr, char *fn)
     size_t lineno = 0;
 
     define_constant(asmr, "KBD", STACK_CPU_IO_KBD);
+    define_constant(asmr, "CODE_PAGE", STACK_CPU_CODE);
+    define_constant(asmr, "DATA_PAGE", STACK_CPU_DATA);
+    define_constant(asmr, "STACK_PAGE", STACK_CPU_STACK);
+    define_constant(asmr, "FRAMES_PAGE", STACK_CPU_FRAMES);
 
     while ((line = strsep(&inp, "\n")) != NULL && inp != NULL) {
         lineno++;

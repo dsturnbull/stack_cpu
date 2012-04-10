@@ -1,0 +1,95 @@
+%define	INPUT	0x10
+%define	TAIL	0x40
+%define	ITER	0x41
+%define	WORDS	0x42
+
+%import	"progs/util.asmr"
+%import	"progs/forth/words.asmr"
+%import	"progs/forth/dict.asmr"
+
+_main:
+	push	_load_words
+	call
+
+	;debug
+	;push	DATA_PAGE
+	;push	WORDS
+	;add
+	;push	0x6
+	;add
+	;call
+
+	push	_prompt
+	call
+
+	; read a line and store at INPUT
+	push	INPUT
+	push	_read_line
+	call
+
+	; check if ^D
+	dup
+	push	_exit
+	jz
+
+	; parse the string at INPUT
+	push	INPUT
+	push	_parse_str
+	call
+
+	push	_main
+	call
+
+_exit:
+	pop
+	pop
+	ret
+
+; <- len, char *
+_parse_str:
+	dup
+
+	; add word
+	load
+	push	0x3a
+	sub
+	push	_parse_str_add_word
+	jz
+
+	; exec word
+	push	_parse_str_exec_word
+	call
+
+; TODO awkward jmping here
+
+_parse_str_ret:
+	ret
+
+_parse_str_add_word:
+	push	_add_word
+	call
+	push	_parse_str_ret
+	jmp
+
+_parse_str_exec_word:
+	push	_exec_word
+	call
+	push	_parse_str_ret
+	jmp
+
+_prompt:
+	push	0x3e
+	out
+	push	0x20
+	out
+	ret
+
+_ok:
+	push	0x6f
+	out
+	push	0x6b
+	out
+	push	0xa
+	out
+	ret
+

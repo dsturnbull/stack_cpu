@@ -20,7 +20,7 @@
     }                                                                       \
 } while (0)
 
-#define MEM_FMT "%08x"
+#define MEM_FMT "%05x"
 
 bool debug;
 

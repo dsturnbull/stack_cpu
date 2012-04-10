@@ -1,0 +1,133 @@
+_load_reset_word:
+	push	TAIL
+	load
+	push	0x5	; length of word name
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x52	; R
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x45	; E
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x53	; S
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x45	; E
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x54	; T
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x3	; length of code
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x13	; PUSH
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x0	; start of code
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x9	; JMP
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	ret
+

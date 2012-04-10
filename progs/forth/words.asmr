@@ -1,0 +1,24 @@
+%import	"progs/forth/words/halt.asmr"
+%import	"progs/forth/words/reset.asmr"
+%import	"progs/forth/words/cr.asmr"
+
+_load_words:
+	push	TAIL
+	push	WORDS
+	store
+
+	push	ITER
+	push	WORDS
+	store
+
+	push	_load_halt_word
+	call
+
+	push	_load_reset_word
+	call
+
+	push	_load_cr_word
+	call
+
+	ret
+

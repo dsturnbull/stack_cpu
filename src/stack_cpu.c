@@ -41,6 +41,9 @@ run_prog(stack_cpu_t *cpu)
 
     uint32_t t;
 
+    // then ip is set, make it point to the previous instruction,
+    // because this loop will increment it at the end.
+
     while ((op = *(cpu->ip)) != 0) {
         if (debug) {
             getchar();
@@ -251,7 +254,7 @@ print_state(stack_cpu_t *cpu)
         printf(MEM_FMT "  ", cpu->data[i]);
     }
 
-    for (uint32_t i = 0; i < 128; i++) {
+    for (uint32_t i = 0; i < 32; i++) {
         if (i % 16 == 0)
             printf("\nstack  %06x: ", i);
         printf(MEM_FMT, cpu->stack[i]);
@@ -261,8 +264,7 @@ print_state(stack_cpu_t *cpu)
             printf("  ");
     }
 
-    /*
-    for (uint32_t i = 0; i < 128; i++) {
+    for (uint32_t i = 0; i < 32; i++) {
         if (i % 16 == 0)
             printf("\nframes %06x: ", i);
         printf(MEM_FMT, cpu->frames[i]);
@@ -271,12 +273,11 @@ print_state(stack_cpu_t *cpu)
         else
             printf("  ");
     }
-    */
 
     printf("\n");
-    /* printf("ip: " MEM_FMT "\n", cpu->ip - cpu->code); */
-    /* printf("sp: " MEM_FMT "\n", cpu->sp - cpu->stack); */
-    /* printf("rp: " MEM_FMT "\n", cpu->rp - cpu->frames); */
+    /* printf("ip: " MEM_FMT "\n", (uint32_t)(cpu->ip - cpu->code)); */
+    /* printf("sp: " MEM_FMT "\n", (uint32_t)(cpu->sp - cpu->stack)); */
+    /* printf("rp: " MEM_FMT "\n", (uint32_t)(cpu->rp - cpu->frames)); */
     /* printf("cy: %lu\n", cpu->cycles); */
 }
 

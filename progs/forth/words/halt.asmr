@@ -1,0 +1,94 @@
+_load_halt_word:
+	push	TAIL
+	load
+	push	0x4	; length of word name
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x48	; H
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x41	; A
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x4c	; L
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x54	; T
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x1	; length of code
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	push	TAIL
+	load
+	push	0x1	; HLT
+	store
+
+	push	TAIL
+	load
+	push	0x1
+	add
+	push	TAIL
+	swap
+	store
+
+	ret
+
