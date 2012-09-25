@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <termios.h>
 
@@ -14,15 +15,14 @@ init_stack_cpu()
 {
     stack_cpu_t *cpu = calloc(1, sizeof(stack_cpu_t));
 
-    cpu->code = &cpu->mem[STACK_CPU_CODE];
+    cpu->code = &cpu->mem[CPU_CODE];
     cpu->ip = &cpu->code[0];
-    cpu->data = &cpu->mem[STACK_CPU_DATA];
-    cpu->stack = &cpu->mem[STACK_CPU_STACK];
+    cpu->data = &cpu->mem[CPU_DATA];
+    cpu->stack = &cpu->mem[CPU_STACK];
     cpu->sp = &cpu->stack[0];
-    cpu->frames = &cpu->mem[STACK_CPU_FRAMES];
+    cpu->frames = &cpu->mem[CPU_FRAMES];
     cpu->rp = &cpu->frames[0];
-    cpu->io = &cpu->mem[STACK_CPU_IO];
-    cpu->kbd = &cpu->io[STACK_CPU_IO_KBD];
+    cpu->io = &cpu->mem[CPU_IO];
 
     return cpu;
 }
@@ -58,7 +58,6 @@ run_prog(stack_cpu_t *cpu)
                     (uint32_t)(cpu->rp - cpu->frames),
                     op,
                     cpu->cycles);
-
         }
 
         cpu->cycles++;
@@ -202,13 +201,7 @@ run_prog(stack_cpu_t *cpu)
                 break;
 
             case INT:
-                if (debug)
-                    printf("int\n");
-                t = *(cpu->sp--);
-                if (*(cpu->sp--) == STACK_CPU_IO_KBD) {
-                    *(++cpu->sp) = readchar();
-                    cpu->ip = &cpu->code[t] - 1;
-                }
+                handle_interrupt(cpu);
                 break;
 
             case PUSH:
@@ -218,14 +211,33 @@ run_prog(stack_cpu_t *cpu)
                 break;
 
             case DEBUG:
+                printf("debugging on\n");
                 debug = true;
                 break;
         }
 
+        cpu->ip++;
+
         if (debug)
             print_state(cpu);
+    }
+}
 
-        cpu->ip++;
+void
+handle_interrupt(stack_cpu_t *cpu)
+{
+    uint32_t callback = *(cpu->sp--), rsrc = *(cpu->sp--);
+
+    switch (rsrc) {
+        case IO_KBD:
+            *(++cpu->sp) = readchar();
+            *(cpu->rp++) = cpu->ip - cpu->code;
+            cpu->ip = &cpu->code[callback] - 1;
+            break;
+
+        default:
+            if (debug)
+                printf("unknown resource " MEM_FMT "\n", rsrc);
     }
 }
 
@@ -236,49 +248,87 @@ print_state(stack_cpu_t *cpu)
 
     //printf("\033[2J");
 
+    char status[3];
+    status[0] = ' ';
+    status[1] = ' ';
+    status[2] = '\0';
+
+    // code
     /*
     for (uint32_t i = 0; i < 128; i++) {
         if (i % 16 == 0)
             printf("\ncode   %06x: ", i);
-        printf(MEM_FMT "", cpu->code[i]);
+
+        status[0] = ' ';
+        status[1] = ' ';
+
         if (i == cpu->ip - cpu->code)
-            printf("* ");
-        else
-            printf("  ");
+            status[1] = '*';
+
+        printf("%s", status);
+        printf(MEM_FMT, cpu->code[i]);
     }
     */
 
+    // data
     for (int i = 0; i < 128; i++) {
         if (i % 16 == 0)
             printf("\ndata   %06x: ", i);
-        printf(MEM_FMT "  ", cpu->data[i]);
+
+        status[0] = ' ';
+        status[1] = ' ';
+
+        if (i == cpu->ip - cpu->data)
+            status[1] = '*';
+
+        printf("%s", status);
+        printf(MEM_FMT, cpu->data[i]);
     }
 
+    // stack
     for (uint32_t i = 0; i < 32; i++) {
         if (i % 16 == 0)
             printf("\nstack  %06x: ", i);
-        printf(MEM_FMT, cpu->stack[i]);
+
+        status[0] = ' ';
+        status[1] = ' ';
+
         if (i == cpu->sp - cpu->stack)
-            printf("* ");
-        else
-            printf("  ");
+            status[1] = '*';
+
+        printf("%s", status);
+        printf(MEM_FMT, cpu->stack[i]);
     }
 
+    // frames
     for (uint32_t i = 0; i < 32; i++) {
         if (i % 16 == 0)
             printf("\nframes %06x: ", i);
-        printf(MEM_FMT, cpu->frames[i]);
         if (i == cpu->rp - cpu->frames)
-            printf("* ");
+            printf(" *");
         else
             printf("  ");
+        printf(MEM_FMT, cpu->frames[i]);
     }
 
+    // io
+    /*
+    for (uint32_t i = 0; i < 0x160; i++) {
+        if (i % 16 == 0)
+            printf("\nio     %06x: ", i);
+        printf("  ");
+        printf(MEM_FMT, cpu->io[i]);
+    }
+    */
+
     printf("\n");
-    /* printf("ip: " MEM_FMT "\n", (uint32_t)(cpu->ip - cpu->code)); */
-    /* printf("sp: " MEM_FMT "\n", (uint32_t)(cpu->sp - cpu->stack)); */
-    /* printf("rp: " MEM_FMT "\n", (uint32_t)(cpu->rp - cpu->frames)); */
-    /* printf("cy: %lu\n", cpu->cycles); */
+
+    /*
+    printf("ip: " MEM_FMT "\n", (uint32_t)(cpu->ip - cpu->code));
+    printf("sp: " MEM_FMT "\n", (uint32_t)(cpu->sp - cpu->stack));
+    printf("rp: " MEM_FMT "\n", (uint32_t)(cpu->rp - cpu->frames));
+    printf("cy: %lu\n", cpu->cycles);
+    */
 }
 
 uint8_t

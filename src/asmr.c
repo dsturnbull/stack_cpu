@@ -25,7 +25,7 @@ init_asmr()
     asmr->data_count = 0;
     asmr->data = malloc(asmr->data_size * sizeof(struct data *));
 
-    asmr->prog = calloc(STACK_CPU_DATA - 1, sizeof(uint32_t));
+    asmr->prog = calloc(CPU_DATA - 1, sizeof(uint32_t));
     asmr->ip = asmr->prog;
 
     return asmr;
@@ -89,11 +89,12 @@ parse_file(asmr_t *asmr, char *fn)
     char *line;
     size_t lineno = 0;
 
-    define_constant(asmr, "KBD", STACK_CPU_IO_KBD);
-    define_constant(asmr, "CODE_PAGE", STACK_CPU_CODE);
-    define_constant(asmr, "DATA_PAGE", STACK_CPU_DATA);
-    define_constant(asmr, "STACK_PAGE", STACK_CPU_STACK);
-    define_constant(asmr, "FRAMES_PAGE", STACK_CPU_FRAMES);
+    define_constant(asmr, "KBD", IO_KBD);
+    define_constant(asmr, "CODE_PAGE", CPU_CODE);
+    define_constant(asmr, "DATA_PAGE", CPU_DATA);
+    define_constant(asmr, "STACK_PAGE", CPU_STACK);
+    define_constant(asmr, "FRAMES_PAGE", CPU_FRAMES);
+    define_constant(asmr, "IO_PAGE", CPU_IO);
 
     while ((line = strsep(&inp, "\n")) != NULL && inp != NULL) {
         lineno++;

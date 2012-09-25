@@ -1,70 +1,77 @@
-; read line to pointer
-; <- char *
-; >- len
 _read_line:
-	dup			; keep the pointer
+	dup
+	dup
 
-; char
-_read_key:
-	dup			; keep the pointer
-	push	KBD		; register int resource
-	push	_read_key_next	; register int callback
-	int			; interrupt
+	push	KBD
+	push	_read_key_next
+	int
+
+	dup
+	load
+	add
+	load
+	push	0xa
+	sub
+	push	_read_key_ret
+	jz
+
+	push	_read_line
+	jmp
 
 _read_key_next:
-
 	; echo char
 	dup
 	out
 
-	; check if 0xa
+	; increment pointer
+	swap
 	dup
-	push	0xa
-	sub
-
-	; finish
-	push	_read_line_ret
-	jz
-
-	; check if 0x4
 	dup
-	push	0x4
-	sub
-
-	; finish
-	push	_read_line_fail
-	jz
-
-	; store to mem
-	store
-
-	; increment stack len
+	load
 	push	0x1
 	add
+	store
 
-	; keep going!
-	push	_read_key
-	jmp
-
-_read_line_fail:
-	pop
-	pop
-	push	0x0
+	; store char
+	dup
+	load
+	add
+	swap
+	store
 	ret
 
-_read_line_ret:
-	pop
-
-	push	0x0
-	store
-
-	; initial pointer - current pointer = strlen
-	swap
-	sub
-
-	; add the \0
+_read_key_ret:
+	; decrement pointer
+	dup
+	load
 	push	0x1
+	sub
+	store
+	ret
+
+_print_num:
+	dup
+	; divide num by 10
+	push	0xa
+	div
+
+	; push remainder
+	push	0x30
 	add
 
+	swap
+
+	; loop until quo == 0
+	dup
+	push	_print_num_ret
+	jz
+
+	push	_print_num
+	call
+
+_print_num_ret:
+	pop
+	out
+	pop
 	ret
 

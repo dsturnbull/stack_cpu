@@ -40,29 +40,3 @@ _loop:
 _exit:
 	ret
 
-; number on stack
-_print_num:
-	dup
-	; divide num by 10
-	push	0xa
-	div
-
-	; push remainder
-	push	0x30
-	add
-
-	swap
-
-	; loop until quo == 0
-	dup
-	push	_print_num_ret
-	jz
-
-	push	_print_num
-	call
-
-_print_num_ret:
-	pop
-	out
-	ret
-

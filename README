@@ -3,7 +3,7 @@ Stack machine simulation.
 Requires clang 3.1.
 
 * Usage:
-	** ./src/runner [-v] [-f asm_file]
+	** ./runner [-v] [-f asm_file]
 	*** -v: verbose, step through code
 	*** -f: asm file to assemble and run
 
@@ -75,4 +75,9 @@ Requires clang 3.1.
 
 	** DEBUG
 		Put the cpu into debug mode.
+
+* Hardware:
+
+	** KBD
+		Awaits a keystroke and then pushes it onto the stack.
 

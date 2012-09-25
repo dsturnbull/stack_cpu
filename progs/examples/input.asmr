@@ -18,8 +18,7 @@ _read_key_print:
 
 	out
 
-	push	_read_key
-	jmp
+	ret
 
 _read_key_ret:
 	pop

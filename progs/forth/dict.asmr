@@ -182,6 +182,7 @@ _iterate_word_match_ret:
 	push	0x2	; and another, we don't actually care about the size.
 	add
 
+	debug
 	; jump to code
 	push	DATA_PAGE
 	add

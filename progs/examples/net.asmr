@@ -1,0 +1,36 @@
+%define	INPUT	0x0
+
+%import	"progs/util.asmr"
+
+_main:
+_loop:
+	; reset len to 0
+	push	INPUT
+	push	0x0
+	store
+
+	push	INPUT
+	push	_read_line
+	call
+
+	push	_ok
+	call
+
+	push	_loop
+	jmp
+
+_prompt:
+	push	0x3e
+	out
+	push	0x20
+	out
+
+_ok:
+	push	0x6f
+	out
+	push	0x6b
+	out
+	push	0xa
+	out
+	ret
+
